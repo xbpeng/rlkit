@@ -1,6 +1,7 @@
 import abc
 
 import gtimer as gt
+import numpy as np
 from rlkit.core.rl_algorithm import BaseRLAlgorithm
 from rlkit.data_management.replay_buffer import ReplayBuffer
 from rlkit.samplers.data_collector import PathCollector
@@ -42,6 +43,7 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
         self.min_num_steps_before_training = min_num_steps_before_training
 
     def _train(self):
+        self.min_num_steps_before_training = 10000 # jp hack
         if self.min_num_steps_before_training > 0:
             init_expl_paths = self.expl_data_collector.collect_new_paths(
                 self.max_path_length,
@@ -50,6 +52,11 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
             )
             self.replay_buffer.add_paths(init_expl_paths)
             self.expl_data_collector.end_epoch(-1)
+			
+            # jp hack
+            all_obs = np.concatenate([p["observations"] for p in init_expl_paths], axis=0)
+            self.expl_env.estimate_obs_stats(all_obs, override_values=True)
+            self.eval_env.estimate_obs_stats(all_obs, override_values=True)
 
         for epoch in gt.timed_for(
                 range(self._start_epoch, self.num_epochs),

@@ -126,7 +126,7 @@ class NormalizedBoxEnv(ProxyEnv):
             obs_std=None,
     ):
         ProxyEnv.__init__(self, env)
-        self._should_normalize = not (obs_mean is None and obs_std is None)
+        self._should_normalize = True
         if self._should_normalize:
             if obs_mean is None:
                 obs_mean = np.zeros_like(env.observation_space.low)
